@@ -1,0 +1,14 @@
+{
+  "info": { "name": "Reglog API", "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json" },
+  "variable": [{"key":"registrationUrl","value":"http://localhost:8081/api/registration"},{"key":"authUrl","value":"http://localhost:8082/api/auth"},{"key":"token","value":""},{"key":"identifier","value":"user@example.com"},{"key":"password","value":"ChangeMe123!"},{"key":"recoveryToken","value":""},{"key":"resetToken","value":""}],
+  "item": [
+    {"name":"Register","request":{"method":"POST","body":{"mode":"raw","raw":"{\n  \"fullName\": \"Example User\",\n  \"email\": \"user@example.com\",\n  \"mobile\": \"9876543210\",\n  \"password\": \"ChangeMe123!\"\n}"},"url":"{{registrationUrl}}/register"}},
+    {"name":"Login","event":[{"listen":"test","script":{"exec":["const body = pm.response.json();","if (body.token) pm.collectionVariables.set('token', body.token);"]}}],"request":{"method":"POST","body":{"mode":"raw","raw":"{\n  \"identifier\": \"{{identifier}}\",\n  \"password\": \"{{password}}\"\n}"},"url":"{{authUrl}}/login"}},
+    {"name":"Current user","request":{"method":"GET","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{authUrl}}/me"}},
+    {"name":"Logout","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"url":"{{authUrl}}/logout"}},
+    {"name":"Forgot password","event":[{"listen":"test","script":{"exec":["const body = pm.response.json();","if (body.recoveryToken) pm.collectionVariables.set('recoveryToken', body.recoveryToken);"]}}],"request":{"method":"POST","body":{"mode":"raw","raw":"{\n  \"identifier\": \"{{identifier}}\"\n}"},"url":"{{authUrl}}/forgot-password"}},
+    {"name":"Verify OTP","event":[{"listen":"test","script":{"exec":["const body = pm.response.json();","if (body.resetToken) pm.collectionVariables.set('resetToken', body.resetToken);"]}}],"request":{"method":"POST","body":{"mode":"raw","raw":"{\n  \"recoveryToken\": \"{{recoveryToken}}\",\n  \"otp\": \"000000\"\n}"},"url":"{{authUrl}}/verify-otp"}},
+    {"name":"Reset password","request":{"method":"POST","body":{"mode":"raw","raw":"{\n  \"resetToken\": \"{{resetToken}}\",\n  \"newPassword\": \"NewPassword123!\"\n}"},"url":"{{authUrl}}/reset-password"}},
+    {"name":"Change password","request":{"method":"POST","header":[{"key":"Authorization","value":"Bearer {{token}}"}],"body":{"mode":"raw","raw":"{\n  \"currentPassword\": \"{{password}}\",\n  \"newPassword\": \"NewPassword123!\"\n}"},"url":"{{authUrl}}/change-password"}}
+  ]
+}

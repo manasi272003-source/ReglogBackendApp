@@ -1,0 +1,46 @@
+services:
+  mysql:
+    image: mysql:8.4
+    environment:
+      MYSQL_DATABASE: reglog
+      MYSQL_USER: reglog
+      MYSQL_PASSWORD: ${DB_PASSWORD:-reglog_local_only}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_local_only}
+    ports: ["${MYSQL_PORT:-3306}:3306"]
+    volumes: ["reglog_mysql:/var/lib/mysql"]
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  mailpit:
+    image: axllent/mailpit:latest
+    ports: ["8025:8025"]
+  registration:
+    build: ./registration-service
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/reglog?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: reglog
+      DB_PASSWORD: ${DB_PASSWORD:-reglog_local_only}
+      REGLOG_ORIGIN: http://localhost:5173
+    ports: ["8081:8081"]
+    depends_on:
+      mysql: { condition: service_healthy }
+  auth:
+    build: ./auth-service
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/reglog?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC
+      DB_USER: reglog
+      DB_PASSWORD: ${DB_PASSWORD:-reglog_local_only}
+      JWT_SECRET: ${JWT_SECRET:?Set JWT_SECRET in .env}
+      REGLOG_ORIGIN: http://localhost:5173
+      SMTP_HOST: mailpit
+      SMTP_PORT: 1025
+      OTP_SENDER: reglog@localhost
+    ports: ["8082:8082"]
+    depends_on:
+      mysql: { condition: service_healthy }
+      mailpit: { condition: service_started }
+volumes:
+  reglog_mysql:
+

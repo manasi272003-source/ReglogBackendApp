@@ -1,0 +1,5 @@
+CREATE DATABASE IF NOT EXISTS reglog CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci;
+USE reglog;
+CREATE TABLE users (id BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY, full_name VARCHAR(100) NOT NULL, email VARCHAR(254) NOT NULL, mobile VARCHAR(10) NOT NULL, password_hash VARCHAR(100) NOT NULL, created_at TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6), CONSTRAINT uq_users_email UNIQUE (email), CONSTRAINT uq_users_mobile UNIQUE (mobile));
+CREATE TABLE auth_sessions (id CHAR(36) NOT NULL PRIMARY KEY, user_id BIGINT NOT NULL, login_at TIMESTAMP(6) NOT NULL, expires_at TIMESTAMP(6) NOT NULL, revoked BOOLEAN NOT NULL DEFAULT FALSE, INDEX idx_sessions_user (user_id), CONSTRAINT fk_session_user FOREIGN KEY (user_id) REFERENCES users(id));
+CREATE TABLE password_recovery (id VARCHAR(64) NOT NULL PRIMARY KEY, user_id BIGINT NULL, otp_hash CHAR(64) NOT NULL, expires_at TIMESTAMP(6) NOT NULL, attempts INT NOT NULL DEFAULT 0, verified BOOLEAN NOT NULL DEFAULT FALSE, consumed BOOLEAN NOT NULL DEFAULT FALSE, INDEX idx_recovery_user (user_id), CONSTRAINT fk_recovery_user FOREIGN KEY (user_id) REFERENCES users(id));
